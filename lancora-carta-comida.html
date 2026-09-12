@@ -304,9 +304,16 @@ function detectLang(){
 let LANG = detectLang();
 function t(field){ return field ? (field[LANG] || field.ca) : ''; }
 
+// El "Menú Semanal" solo se ofrece de lunes a viernes (0=domingo ... 6=sábado)
+function visibleCategories(){
+  const day = new Date().getDay();
+  const isWeekend = (day === 0 || day === 6);
+  return APP.categories.filter(c => !(c.id === 'menu-semanal' && isWeekend));
+}
+
 function buildChips(){
   const row = document.getElementById('chipsrow');
-  row.innerHTML = APP.categories.map(c =>
+  row.innerHTML = visibleCategories().map(c =>
     `<a class="chip" href="#${c.id}" data-id="${c.id}">${t(c.title)}</a>`
   ).join('');
   row.querySelectorAll('.chip').forEach(chip=>{
@@ -330,7 +337,7 @@ function buildCategories(){
           </div>
         `;
   const box = document.getElementById('categories');
-  box.innerHTML = APP.categories.map(c => `
+  box.innerHTML = visibleCategories().map(c => `
     <section class="category" id="${c.id}">
       <div class="cat-head">
         <span class="icon-wrap"><svg viewBox="0 0 24 24"><use href="#ic-${c.icon}"/></svg></span>
@@ -438,7 +445,7 @@ function updateStaticText(){
 let observer;
 function setupScrollspy(){
   if(observer) observer.disconnect();
-  const sections = APP.categories.map(c => document.getElementById(c.id));
+  const sections = visibleCategories().map(c => document.getElementById(c.id));
   const chips = document.querySelectorAll('.chip');
   observer = new IntersectionObserver((entries)=>{
     entries.forEach(entry=>{
